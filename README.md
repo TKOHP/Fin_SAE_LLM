@@ -1,7 +1,7 @@
 # 环境安装
 两种情况，不成功可以换另一种情况尝试
 ## 1 一口气安装
-pip install git+https://github.com/TKOHP/SAELens.gitgit+https://github.com/TKOHP/TransformerLens.git circuitsvis
+pip install git+https://github.com/TKOHP/SAELens.git git+https://github.com/TKOHP/TransformerLens.git circuitsvis
 ## 2 先安装再安装
 pip install git+https://github.com/TKOHP/SAELens.git
 
@@ -10,6 +10,8 @@ pip install git+https://github.com/TKOHP/SAELens.git
 pip install git+https://github.com/TKOHP/TransformerLens.git 
 
 pip install circuitsvis
+## 同时安装SAElens和TransformerLens
+pip install git+https://github.com/TKOHP/SAELens.git git+https://github.com/TKOHP/TransformerLens.git
 # 存储，代码code/make_dataset
 需要多GPU，一个GPU不够加载
 python make_dataset.py --batch_size 1024 traning_step 3000 --context_size 512 --n_batches_in_buffer 64 --store_batch_size_prompts 16 --save_path "/root/data/sae/dataset" --device "cuda:7"
