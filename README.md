@@ -10,7 +10,9 @@ pip install git+https://github.com/TKOHP/SAELens.git
 pip install git+https://github.com/TKOHP/TransformerLens.git 
 
 pip install circuitsvis
-
+# 计算显存占用，代码code/calculate_ram.py
+calculate()计算SAE显存占用
+shuffle_ram()计算shuffle的占用，为固定开销=19*buffer_size
 # 存储，代码code/make_dataset
 虚拟环境为mxl，因为后面直接在依赖包的源码上写的，且强制将一些部分变为了cpu，和github上不一样，所有这里就先不用安装github上的sae_lens呢。可以通过pycharm和虚拟环境里的sae_lens包同步来修改源码。
 需要多GPU，一个GPU不够加载
