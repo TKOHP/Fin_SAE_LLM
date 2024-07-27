@@ -1,15 +1,18 @@
 from sae_lens import CacheActivationsRunnerConfig,CacheActivationsRunner
 from datasets import load_dataset
 import argparse
+import os
+
+
 class make_data:
-    def __init__(self,batch_size,traning_step,context_size,n_batches_in_buffer,store_batch_size_prompts,save_path,device):
+    def __init__(self,batch_size,traning_step,context_size,n_batches_in_buffer,store_batch_size_prompts,save_path,n_devices):
         self.batch_size=batch_size
         self.traning_step = traning_step
         self.context_size=context_size
         self.n_batches_in_buffer=n_batches_in_buffer
         self.store_batch_size_prompts=store_batch_size_prompts
         self.save_path=save_path
-        self.device=device
+        self.n_devices=n_devices
     def run(self):
         save_path=f"{self.save_path}/bs{self.batch_size}_ts{self.traning_step}_cs{self.context_size}_nbib{self.n_batches_in_buffer}_sbsp{self.store_batch_size_prompts}"
         cfg=CacheActivationsRunnerConfig(
@@ -22,7 +25,8 @@ class make_data:
             n_batches_in_buffer=self.n_batches_in_buffer,# 和训练的一样
             store_batch_size_prompts=self.store_batch_size_prompts,# 和训练的一样
             new_cached_activations_path=save_path,
-            device=self.device,
+            device="cuda",
+            n_devices=self.n_devices,
             # ignore
             dataset_path="Duxiaoman-DI/FinCorpus"
         )
@@ -30,8 +34,10 @@ class make_data:
         print(a)
 
 def main(args):
-    make_data(args.batch_size,args.traning_step,args.context_size,args.n_batches_in_buffer,args.store_batch_size_prompts,args.save_path,args.device).run()
+    make_data(args.batch_size,args.traning_step,args.context_size,args.n_batches_in_buffer,args.store_batch_size_prompts,args.save_path,args.n_devices).run()
 if __name__ == '__main__':
+    # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+    # os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6,7"
     parser = argparse.ArgumentParser(description='Configuration Parameters')
     parser.add_argument('--batch_size', type=int, default=1024)
     parser.add_argument('--traning_step', type=int, default=30_00)
@@ -40,8 +46,8 @@ if __name__ == '__main__':
     parser.add_argument('--store_batch_size_prompts', type=int, default=16)
     parser.add_argument('--save_path', default='/root/data/sae/dataset',
                         help='数据存储根目录，每次存储的文件名都会自动生成，不用改变这个值')
-    parser.add_argument('--device', default='cuda:7',
-                        help='使用哪个卡运行')
+    parser.add_argument('--n_devices', type=int,
+                        default=4)
 
     args = parser.parse_args()
     main(args)
