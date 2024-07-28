@@ -36,7 +36,8 @@ class vis:
         model_name_spilt=model_name.split("/")[-1].replace("-","_")
         sae_split = sae.split("/")[-1]
         sae_b_spilt = sae_b.split("/")[-1]
-        save_html_path = f"{save_html_path}/{model_name_spilt}_a_{sae_split}_b_{sae_b_spilt}_{hook_point}.html"
+        self.hook_point=hook_point
+        self.save_html_path = f"{save_html_path}/{model_name_spilt}_a_{sae_split}_b_{sae_b_spilt}_{hook_point}.html"
 
     def load_sae(self,sae,sae_b):
         encoder = SAE.load_from_pretrained(sae)
@@ -90,7 +91,7 @@ class vis:
         return model
 
 
-    def run(self,hook_point,save_html_path):
+    def make_html(self,hook_point,save_html_path):
         # Specify the hook point you're using, and the features you're analyzing
         sae_vis_config = SaeVisConfig(
             # hook_point=utils.get_act_name("post", 0),
@@ -109,7 +110,8 @@ class vis:
 
         # Save as HTML file & open in browser (or not, if in Colab)
         sae_vis_data.save_feature_centric_vis(save_html_path, feature_idx=8)
-
+    def run(self):
+        self.make_html(self.hook_point,self.save_html_path)
 
 def main(args):
     vis(
