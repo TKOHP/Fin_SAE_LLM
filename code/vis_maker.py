@@ -33,7 +33,10 @@ class vis:
         self.encoder, self.encoder_B = self.load_sae(sae,sae_b)
         self.model = self.load_model(model_name)
         self.all_tokens = self.get_data(hook_point,save_html_path)
-
+        model_name_spilt=model_name.split("/")[-1]
+        sae_split = sae.split("/")[-1]
+        sae_b_spilt = sae_b.split("/")[-1]
+        save_html_path = f"{save_html_path}/{model_name_spilt}_a_{sae_split}_b_{sae_b_spilt}_{hook_point}"
 
     def load_sae(self,sae,sae_b):
         encoder = SAE.load_from_pretrained(sae)
