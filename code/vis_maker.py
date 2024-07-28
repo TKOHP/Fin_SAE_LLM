@@ -33,7 +33,7 @@ class vis:
         self.encoder, self.encoder_B = self.load_sae(sae,sae_b)
         self.model = self.load_model(model_name)
         self.all_tokens = self.get_data(hook_point,save_html_path)
-        model_name_spilt=model_name.split("/")[-1]
+        model_name_spilt=model_name.split("/")[-1].replace("-","_")
         sae_split = sae.split("/")[-1]
         sae_b_spilt = sae_b.split("/")[-1]
         save_html_path = f"{save_html_path}/{model_name_spilt}_a_{sae_split}_b_{sae_b_spilt}_{hook_point}"
@@ -127,6 +127,6 @@ if __name__ == '__main__':
     parser.add_argument('--sae', default="/root/data/sae/sae_checkpoint/2eizws4q", help="sae的checkpoint路径")
     parser.add_argument('--sae_b', default="/root/data/sae/sae_checkpoint/2eizws4q",help="sae的checkpoint路径")
     parser.add_argument('--hook_point', default="blocks.0.hook_mlp_out", help="在MLP的哪一层")
-    parser.add_argument('--save_html_path', default="/root/data/sae/vis_html/vis.html")
+    parser.add_argument('--save_html_path', default="/root/data/sae/vis_html")
     args = parser.parse_args()
     main(args)
