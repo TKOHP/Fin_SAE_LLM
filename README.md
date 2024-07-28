@@ -5,7 +5,8 @@ pip install git+https://github.com/TKOHP/SAELens.git git+https://github.com/TKOH
 ## 2 先安装再安装
 pip install git+https://github.com/TKOHP/SAELens.git
 
-先安装sae_lens，再卸载原有的Transformer_lens安装
+先安装sae_lens，再卸载原有的Transformer_lens安装。
+pip uninstall transformer_lens
 
 pip install git+https://github.com/TKOHP/TransformerLens.git 
 
@@ -22,3 +23,8 @@ python make_dataset.py --batch_size 1024 --traning_step 3000 --context_size 512 
 device看情况配置。
 ## 更大的batch_size和训练step
 python make_dataset.py --batch_size 4096 --traning_step 30000 --context_size 512 --n_batches_in_buffer 64 --store_batch_size_prompts 16 --save_path "/root/data/sae/dataset" --n_devices 3
+# 可视化HTML生成，code/vis_maker
+## 默认参数配置如下
+python vis_maker.py --model_name /root/data/sae/LLMmodel/XuanYuan-6B-Chat --sae /root/data/sae/sae_checkpoint/2eizws4q --sae_b /root/data/sae/sae_checkpoint/2eizws4q --hook_point blocks.0.hook_mlp_out --save_html_path /root/data/sae/vis_html/vis.html 
+save_html_path 每次定义一个新的文件名称，不让会覆盖旧的
+
