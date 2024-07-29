@@ -14,7 +14,8 @@ from sae_vis.data_storing_fns import SaeVisData
 from sae_vis.data_config_classes import SaeVisConfig
 # from sae_lens.training.sparse_autoencoder import SparseAutoencoder
 from sae_lens import SAE
-import json
+#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "3,4,5,6"
 device = get_device()
 torch.set_grad_enabled(False)
 from transformers import LlamaForCausalLM, AutoTokenizer, LlamaTokenizer, AutoModel
@@ -22,65 +23,26 @@ import argparse
 
 print(torch.cuda.is_available())
 
-# class visConfig:
-#     """
-#     Configuration for caching activations of an LLM.
-#     """
-#
-#     # Data Generating Function (Model + Training Distibuion)
-#     model_name: str = "/root/data/sae/LLMmodel/XuanYuan-6B-Chat"
-#     sae: str = "/root/data/sae/sae_checkpoint/2eizws4q"
-#     sae_b: str = "/root/data/sae/sae_checkpoint/2eizws4q"
-#     hook_point: str = "blocks.0.hook_mlp_out"
-#     save_html_path: str = "/root/data/sae/vis_html/1"
-#     def __post_init__(self):
-#         # Autofill cached_activations_path unless the user overrode it
-#         if self.new_cached_activations_path is None:
-#             self.new_cached_activations_path = _default_cached_activations_path(
-#                 self.dataset_path,
-#                 self.model_name,
-#                 self.hook_name,
-#                 self.hook_head_index,
-#             )
-#
-#         if self.act_store_device == "with_model":
-#             self.act_store_device = self.device
-#
-#         self.to_json(self.new_cached_activations_path+".json")
-#     def to_dict(self) -> dict[str, Any]:
-#
-#         cfg_dict = {
-#             **self.__dict__,
-#             # some args may not be serializable by default
-#             "dtype": str(self.dtype),
-#             "device": str(self.device),
-#             "act_store_device": str(self.act_store_device),
-#         }
-#         return cfg_dict
-#
-#     def to_json(self, path: str) -> None:
-#         json_path = path
-#         # if not os.path.exists(os.path.dirname(path)):
-#         #     os.makedirs(os.path.dirname(path))
-#         with open(path, "w") as f:
-#             json.dump(self.to_dict(), f, indent=2)
-
 
 class vis:
     def __init__(self, model_name,
                  sae,
                  sae_b,
                  hook_point,
-                 save_html_path):
+                 save_html_path,
+                 save_json_path):
 
         self.encoder, self.encoder_B = self.load_sae(sae,sae_b)
         self.model = self.load_model(model_name)
-        self.all_tokens = self.get_data(hook_point,save_html_path)
+        #.all_tokens = self.get_data(hook_point,save_html_path)
+        self.all_tokens = self.get_data()
         model_name_spilt=model_name.split("/")[-1].replace("-","_")
         sae_split = sae.split("/")[-1]
         sae_b_spilt = sae_b.split("/")[-1]
         self.hook_point=hook_point
         self.save_html_path = f"{save_html_path}/{model_name_spilt}_a_{sae_split}_b_{sae_b_spilt}_{hook_point}.html"
+        self.save_json_path = f"{save_json_path}/{model_name_spilt}_a_{sae_split}_b_{sae_b_spilt}_{hook_point}.json"
+
 
     def load_sae(self,sae,sae_b):
         encoder = SAE.load_from_pretrained(sae)
@@ -100,8 +62,8 @@ class vis:
         # Load in the data (it's a Dataset object)
         ## 在线读取的话，流式读取，streaming=True
         ## 本地路径读取的话，换为本地路径，可以把streaming=True删除掉。
-        data = load_dataset("NeelNanda/c4-code-20k", split="train")
-        # data = load_dataset("Duxiaoman-DI/FinCorpus", split="train[:100]")
+        #data = load_dataset("NeelNanda/c4-code-20k", split="train")
+        data = load_dataset("/root/data/sae/dataset/FinCorpus", split="train[:100]")
         # data = load_dataset("NeelNanda/c4-code-20k", split="train")
         print(type(data))
         # assert isinstance(data, Dataset)
@@ -129,13 +91,12 @@ class vis:
             center_writing_weights=False,
             center_unembed=False,
             tokenizer=tokenizer,
-            n_devices=3,
+            n_devices=3
         )
-        model = model.to(device)
         return model
 
 
-    def make_html(self,hook_point,save_html_path):
+    def make_html(self,hook_point,save_html_path,save_json_path):
         # Specify the hook point you're using, and the features you're analyzing
         sae_vis_config = SaeVisConfig(
             # hook_point=utils.get_act_name("post", 0),
@@ -154,8 +115,10 @@ class vis:
 
         # Save as HTML file & open in browser (or not, if in Colab)
         sae_vis_data.save_feature_centric_vis(save_html_path, feature_idx=8)
+        sae_vis_data.save_json(save_json_path)
+
     def run(self):
-        self.make_html(self.hook_point,self.save_html_path)
+        self.make_html(self.hook_point,self.save_html_path,self.save_json_path)
 
 def main(args):
     vis(
@@ -164,15 +127,18 @@ def main(args):
         args.sae_b,
         args.hook_point,
         args.save_html_path,
+        args.save_json_path,
     ).run()
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Configuration Parameters')
     parser.add_argument('--model_name', default="/root/data/sae/LLMmodel/XuanYuan-6B-Chat", help="大模型的位置")
-    parser.add_argument('--sae', default="/root/data/sae/sae_checkpoint/2eizws4q", help="sae的checkpoint路径")
-    parser.add_argument('--sae_b', default="/root/data/sae/sae_checkpoint/2eizws4q",help="sae的checkpoint路径")
+    parser.add_argument('--sae', default="/root/data/sae/sae_checkpoint/2eizws4q/final_3072000", help="sae的checkpoint路径")
+    #parser.add_argument('--sae_b', default="/root/data/sae/sae_checkpoint/2eizws4q/final_3072000",help="sae的checkpoint路径")
+    parser.add_argument('--sae_b',default="",help="sae的checkpoint路径")
     parser.add_argument('--hook_point', default="blocks.0.hook_mlp_out", help="在MLP的哪一层")
     parser.add_argument('--save_html_path', default="/root/data/sae/vis_html")
+    parser.add_argument('--save_json_path', default="/root/data/sae/vis_json")
     args = parser.parse_args()
     main(args)
