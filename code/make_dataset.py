@@ -1,6 +1,5 @@
 import os
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6,7"
+
 from sae_lens import CacheActivationsRunnerConfig,CacheActivationsRunner
 from datasets import load_dataset
 import argparse
@@ -39,8 +38,6 @@ class make_data:
 def main(args):
     make_data(args.batch_size,args.traning_step,args.context_size,args.n_batches_in_buffer,args.store_batch_size_prompts,args.save_path,args.n_devices).run()
 if __name__ == '__main__':
-    # os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    # os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6,7"
     parser = argparse.ArgumentParser(description='Configuration Parameters')
     parser.add_argument('--batch_size', type=int, default=1024)
     parser.add_argument('--traning_step', type=int, default=30_00)
