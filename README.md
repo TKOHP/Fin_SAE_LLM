@@ -28,4 +28,5 @@ python make_dataset.py --batch_size 4096 --traning_step 30000 --context_size 512
 python vis_maker.py --model_name /root/data/sae/LLMmodel/XuanYuan-6B-Chat --sae /root/data/sae/sae_checkpoint/2eizws4q --sae_b /root/data/sae/sae_checkpoint/2eizws4q --hook_point blocks.0.hook_mlp_out --save_html_path /root/data/sae/vis_html/vis.html 
 save_html_path 每次定义一个新的文件名称，不让会覆盖旧的
 保存文件命名是XuanYuan_6B_Chat_a_2eizws4q_b_2eizws4q_blocks.0.hook_mlp_out
-
+# 评估文件，code/evals
+SAElens源码中的文件，稍微修改了加载模型部分，以适用金融LLM和多GPU。

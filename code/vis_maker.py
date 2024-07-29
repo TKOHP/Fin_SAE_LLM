@@ -14,13 +14,56 @@ from sae_vis.data_storing_fns import SaeVisData
 from sae_vis.data_config_classes import SaeVisConfig
 # from sae_lens.training.sparse_autoencoder import SparseAutoencoder
 from sae_lens import SAE
-
+import json
 device = get_device()
 torch.set_grad_enabled(False)
 from transformers import LlamaForCausalLM, AutoTokenizer, LlamaTokenizer, AutoModel
 import argparse
 
 print(torch.cuda.is_available())
+
+# class visConfig:
+#     """
+#     Configuration for caching activations of an LLM.
+#     """
+#
+#     # Data Generating Function (Model + Training Distibuion)
+#     model_name: str = "/root/data/sae/LLMmodel/XuanYuan-6B-Chat"
+#     sae: str = "/root/data/sae/sae_checkpoint/2eizws4q"
+#     sae_b: str = "/root/data/sae/sae_checkpoint/2eizws4q"
+#     hook_point: str = "blocks.0.hook_mlp_out"
+#     save_html_path: str = "/root/data/sae/vis_html/1"
+#     def __post_init__(self):
+#         # Autofill cached_activations_path unless the user overrode it
+#         if self.new_cached_activations_path is None:
+#             self.new_cached_activations_path = _default_cached_activations_path(
+#                 self.dataset_path,
+#                 self.model_name,
+#                 self.hook_name,
+#                 self.hook_head_index,
+#             )
+#
+#         if self.act_store_device == "with_model":
+#             self.act_store_device = self.device
+#
+#         self.to_json(self.new_cached_activations_path+".json")
+#     def to_dict(self) -> dict[str, Any]:
+#
+#         cfg_dict = {
+#             **self.__dict__,
+#             # some args may not be serializable by default
+#             "dtype": str(self.dtype),
+#             "device": str(self.device),
+#             "act_store_device": str(self.act_store_device),
+#         }
+#         return cfg_dict
+#
+#     def to_json(self, path: str) -> None:
+#         json_path = path
+#         # if not os.path.exists(os.path.dirname(path)):
+#         #     os.makedirs(os.path.dirname(path))
+#         with open(path, "w") as f:
+#             json.dump(self.to_dict(), f, indent=2)
 
 
 class vis:
@@ -81,11 +124,12 @@ class vis:
         model = HookedTransformer.from_pretrained(
             model_name,
             hf_model=hf_model,
-            device="cpu",
+            device="cuda",
             fold_ln=False,
             center_writing_weights=False,
             center_unembed=False,
             tokenizer=tokenizer,
+            n_devices=3,
         )
         model = model.to(device)
         return model

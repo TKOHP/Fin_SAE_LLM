@@ -1,7 +1,10 @@
+import os
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6,7"
 from sae_lens import CacheActivationsRunnerConfig,CacheActivationsRunner
 from datasets import load_dataset
 import argparse
-import os
+
 
 
 class make_data:
