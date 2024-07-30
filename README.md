@@ -26,11 +26,15 @@ pip uninstall transformer_lens
 pip install git+https://github.com/TKOHP/TransformerLens.git 
 
 pip install circuitsvis
-## 默认参数
+## 使用
+直接编辑代码中的cfg，文件名自定义，起个好记的就行，会创建一个和文件名相同的json文件，保存在同一个父目录下。
+new_cached_activations_path路径不要以"/"结尾就行，因为要拼接.json。
+## code/make_dataset_old，之前旧的，使用命令行参数运行的代码，现在不适用
+### 默认参数
 python make_dataset.py --batch_size 1024 --traning_step 3000 --context_size 512 --n_batches_in_buffer 64 --store_batch_size_prompts 16 --save_path "/root/data/sae/dataset" --n_devices 3
 这是默认参数，不配置的话按默认参数走，其中save_path不用配置，按照默认的来就行。
 device看情况配置。
-## 更大的batch_size和训练step
+### 更大的batch_size和训练step
 python make_dataset.py --batch_size 4096 --traning_step 30000 --context_size 512 --n_batches_in_buffer 64 --store_batch_size_prompts 16 --save_path "/root/data/sae/dataset" --n_devices 3
 # 可视化HTML生成，code/vis_maker
 ## 默认参数配置如下
