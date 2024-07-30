@@ -37,6 +37,9 @@ device看情况配置。
 ### 更大的batch_size和训练step
 python make_dataset.py --batch_size 4096 --traning_step 30000 --context_size 512 --n_batches_in_buffer 64 --store_batch_size_prompts 16 --save_path "/root/data/sae/dataset" --n_devices 3
 # 可视化HTML生成，code/vis_maker
+## 虚拟环境配置
+在环境安装的基础上，安装包：
+pip install git+https://github.com/zyao210/sae_vis.git
 ## 默认参数配置如下
 python vis_maker.py --model_name /root/data/sae/LLMmodel/XuanYuan-6B-Chat --sae /root/data/sae/sae_checkpoint/2eizws4q --sae_b /root/data/sae/sae_checkpoint/2eizws4q --hook_point blocks.0.hook_mlp_out --save_html_path /root/data/sae/vis_html/vis.html 
 save_html_path 每次定义一个新的文件名称，不让会覆盖旧的
