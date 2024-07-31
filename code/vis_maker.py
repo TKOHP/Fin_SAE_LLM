@@ -34,22 +34,25 @@ class vis:
 
         self.encoder, self.encoder_B = self.load_sae(sae,sae_b)
         self.model = self.load_model(model_name)
+
         #.all_tokens = self.get_data(hook_point,save_html_path)
         self.all_tokens = self.get_data()
         model_name_spilt=model_name.split("/")[-1].replace("-","_")
         sae_split = sae.split("/")[-1]
         sae_b_spilt = sae_b.split("/")[-1]
         self.hook_point=hook_point
-        self.save_html_path = f"{save_html_path}/{model_name_spilt}_a_{sae_split}_b_{sae_b_spilt}_{hook_point}.html"
-        self.save_json_path = f"{save_json_path}/{model_name_spilt}_a_{sae_split}_b_{sae_b_spilt}_{hook_point}.json"
+        # self.save_html_path = f"{save_html_path}/{model_name_spilt}_a_{sae_split}_b_{sae_b_spilt}_{hook_point}.html"
+        # self.save_json_path = f"{save_json_path}/{model_name_spilt}_a_{sae_split}_b_{sae_b_spilt}_{hook_point}.json"
+        self.save_html_path = save_html_path
+        self.save_json_path = save_json_path
 
 
     def load_sae(self,sae,sae_b):
-        encoder = SAE.load_from_pretrained(sae)
+        encoder = SAE.load_from_pretrained(sae,device="cuda:0")
         if sae_b=="":
             encoder_B = None
         else:
-            encoder_B = SAE.load_from_pretrained(sae_b)
+            encoder_B = SAE.load_from_pretrained(sae_b,device="cuda:0")
 
         for k, v in encoder.named_parameters():
             print(f"{k}: {tuple(v.shape)}")
@@ -91,8 +94,9 @@ class vis:
             center_writing_weights=False,
             center_unembed=False,
             tokenizer=tokenizer,
-            n_devices=3
+            n_devices=4
         )
+        print(model)
         return model
 
 
@@ -103,19 +107,21 @@ class vis:
             hook_point=hook_point,
             features=range(64),
             verbose=True,
+            minibatch_size_features=16,
+            minibatch_size_tokens=8
         )
         # Gather the feature data
         sae_vis_data = SaeVisData.create(
             encoder=self.encoder,
-            # encoder_B=self.encoder_B,
+            encoder_B=self.encoder_B,
             model=self.model,
-            tokens=self.all_tokens[: 4096],  # type: ignore
+            tokens=self.all_tokens[: 1024],  # type: ignore
             cfg=sae_vis_config,
         )
 
         # Save as HTML file & open in browser (or not, if in Colab)
         sae_vis_data.save_feature_centric_vis(save_html_path, feature_idx=8)
-        sae_vis_data.save_json(save_json_path)
+        # sae_vis_data.save_json(save_json_path)
 
     def run(self):
         self.make_html(self.hook_point,self.save_html_path,self.save_json_path)
@@ -134,11 +140,11 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Configuration Parameters')
     parser.add_argument('--model_name', default="/root/data/sae/LLMmodel/XuanYuan-6B-Chat", help="大模型的位置")
-    parser.add_argument('--sae', default="/root/data/sae/sae_checkpoint/2eizws4q/final_3072000", help="sae的checkpoint路径")
-    #parser.add_argument('--sae_b', default="/root/data/sae/sae_checkpoint/2eizws4q/final_3072000",help="sae的checkpoint路径")
+    parser.add_argument('--sae', default="/root/data/sae/sae_checkpoint/p1i9e0gh/final_768000", help="sae的checkpoint路径")
+    # parser.add_argument('--sae_b', default="/root/data/sae/sae_checkpoint/2eizws4q/final_3072000",help="sae的checkpoint路径")
     parser.add_argument('--sae_b',default="",help="sae的checkpoint路径")
     parser.add_argument('--hook_point', default="blocks.0.hook_mlp_out", help="在MLP的哪一层")
-    parser.add_argument('--save_html_path', default="/root/data/sae/vis_html")
-    parser.add_argument('--save_json_path', default="/root/data/sae/vis_json")
+    parser.add_argument('--save_html_path', default="/root/data/sae/mxl_vis/XuanYuan_p1i9e0gh")
+    parser.add_argument('--save_json_path', default="/root/data/sae/mxl_vis/XuanYuan_p1i9e0gh/config.json")
     args = parser.parse_args()
     main(args)
