@@ -1,4 +1,4 @@
-# 环境安装
+# 环境安装->只用于训练，存储和可视化参考别处
 两种情况，不成功可以换另一种情况尝试
 ## 1 一口气安装
 pip install git+https://github.com/TKOHP/SAELens.git git+https://github.com/TKOHP/TransformerLens.git circuitsvis
