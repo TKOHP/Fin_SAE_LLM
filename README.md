@@ -38,7 +38,7 @@ python make_dataset_plus_shuffle.py  --batch_size 1024 --traning_step 3000 --con
 #### 数据只shuffle，不生成：
 python make_dataset_plus_shuffle.py  --batch_size 1024 --traning_step 3000 --context_size 512 --n_batches_in_buffer 64 --store_batch_size_prompts 16 --save_path "/root/data/sae/dataset" --n_devices 3 --is_shuffle 0
 #### 数据生成并shuffle（后两个参数默认即为1，1）：
-python make_dataset_plus_shuffle.py  --batch_size 1024 --traning_step 3000 --context_size 512 --n_batches_in_buffer 64 --store_batch_size_prompts 16 --save_path "/root/data/sae/dataset" --n_devices 3 is_generate 0 --is_shuffle 1
+python make_dataset_plus_shuffle.py  --batch_size 1024 --traning_step 3000 --context_size 512 --n_batches_in_buffer 64 --store_batch_size_prompts 16 --save_path "/root/data/sae/dataset" --n_devices 3 is_generate 1 --is_shuffle 1
 这是默认参数，不配置的话按默认参数走，其中save_path不用配置，按照默认的来就行。
 device看情况配置。
 ### 更大的batch_size和训练step
