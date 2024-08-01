@@ -15,7 +15,7 @@ class make_data:
         self.store_batch_size_prompts=store_batch_size_prompts
         self.save_path=save_path
         self.n_devices=n_devices
-        save_path=f"{self.save_path}/bs{self.batch_size}_ts{self.traning_step}_cs{self.context_size}_nbib{self.n_batches_in_buffer}_sbsp{self.store_batch_size_prompts}"
+        save_path=f"{self.save_path}/bs{self.batch_size}_ts{self.traning_step}_cs{self.context_size}_nbib{self.n_batches_in_buffer}_sbsp{self.store_batch_size_prompts}_fin_news_data"
         cfg=CacheActivationsRunnerConfig(
             model_name="/root/data/sae/LLMmodel/XuanYuan-6B-Chat",
             model_class_name="LlamaForCausalLM",
