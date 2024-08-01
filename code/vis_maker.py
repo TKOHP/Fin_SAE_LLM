@@ -16,6 +16,8 @@ from sae_vis.data_config_classes import SaeVisConfig
 from sae_lens import SAE
 #os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"] = "3,4,5,6"
+from typing import Optional
+
 device = get_device()
 torch.set_grad_enabled(False)
 from transformers import LlamaForCausalLM, AutoTokenizer, LlamaTokenizer, AutoModel
@@ -110,6 +112,7 @@ class vis:
             minibatch_size_features=16,
             minibatch_size_tokens=8
         )
+        print("开始运行")
         # Gather the feature data
         sae_vis_data = SaeVisData.create(
             encoder=self.encoder,
@@ -118,9 +121,13 @@ class vis:
             tokens=self.all_tokens[: 1024],  # type: ignore
             cfg=sae_vis_config,
         )
-
+        is_single=False
+        if is_single==False:
+            save_html_path=f"{save_html_path}/all.html"
         # Save as HTML file & open in browser (or not, if in Colab)
-        sae_vis_data.save_feature_centric_vis(save_html_path, feature_idx=8)
+        sae_vis_data.save_feature_centric_vis(save_html_path, feature_idx=8,is_single=is_single)
+
+
         # sae_vis_data.save_json(save_json_path)
 
     def run(self):
@@ -140,11 +147,12 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Configuration Parameters')
     parser.add_argument('--model_name', default="/root/data/sae/LLMmodel/XuanYuan-6B-Chat", help="大模型的位置")
-    parser.add_argument('--sae', default="/root/data/sae/sae_checkpoint/p1i9e0gh/final_768000", help="sae的checkpoint路径")
+    # parser.add_argument('--sae', default="/root/data/sae/sae_checkpoint/amw5q8up/final_768000", help="sae的checkpoint路径")
+    parser.add_argument('--sae', default="/root/data/sae/sae_checkpoint/pcc1n73m/final_3072000",help="sae的checkpoint路径")
     # parser.add_argument('--sae_b', default="/root/data/sae/sae_checkpoint/2eizws4q/final_3072000",help="sae的checkpoint路径")
     parser.add_argument('--sae_b',default="",help="sae的checkpoint路径")
     parser.add_argument('--hook_point', default="blocks.0.hook_mlp_out", help="在MLP的哪一层")
-    parser.add_argument('--save_html_path', default="/root/data/sae/mxl_vis/XuanYuan_p1i9e0gh")
-    parser.add_argument('--save_json_path', default="/root/data/sae/mxl_vis/XuanYuan_p1i9e0gh/config.json")
+    parser.add_argument('--save_html_path', default="/root/data/sae/mxl_vis/XuanYuan_pcc1n73m")
+    parser.add_argument('--save_json_path', default="/root/data/sae/mxl_vis/XuanYuan_amw5q8up/config.json")
     args = parser.parse_args()
     main(args)
