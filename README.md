@@ -59,3 +59,6 @@ save_html_path 每次定义一个新的文件名称，不让会覆盖旧的
 保存文件命名是XuanYuan_6B_Chat_a_2eizws4q_b_2eizws4q_blocks.0.hook_mlp_out
 # 评估文件，code/evals
 SAElens源码中的文件，稍微修改了加载模型部分，以适用金融LLM和多GPU。
+# 模型引导
+sae_lens
+pip install git+https://github.com/TKOHP/TransformerLens_steering.git
