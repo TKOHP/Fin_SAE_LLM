@@ -6,7 +6,9 @@ from transformer_lens import utils, HookedTransformer
 from datasets.arrow_dataset import Dataset
 from huggingface_hub import hf_hub_download
 import time
-
+from dataclasses import dataclass, field
+from typing import Any, Literal, Optional, cast
+import json
 # Library imports
 from sae_vis.utils_fns import get_device
 from sae_vis.model_fns import AutoEncoder
@@ -14,8 +16,8 @@ from sae_vis.data_storing_fns import SaeVisData
 from sae_vis.data_config_classes import SaeVisConfig
 # from sae_lens.training.sparse_autoencoder import SparseAutoencoder
 from sae_lens import SAE
-#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-#os.environ["CUDA_VISIBLE_DEVICES"] = "3,4,5,6"
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "3,4,5,6"
 from typing import Optional
 
 device = get_device()
@@ -26,40 +28,61 @@ import argparse
 print(torch.cuda.is_available())
 
 
+@dataclass
+class MyVisConfig:
+    model_name: str = "/root/data/sae/LLMmodel/XuanYuan-6B-Chat"
+    dataset: str = "/root/data/sae/dataset/FinCorpus3"
+    sae: str = "/root/data/sae/sae_checkpoint/pcc1n73m/final_3072000"
+    sae_b: str = ""
+    hook_point: str = "blocks.0.hook_mlp_out"
+    save_html_path: str = "/root/data/sae/mxl_vis/XuanYuan_mb1j2uao"
+    is_single: bool = False
+    prompt:str="可转换公司债券"
+    features:list|range = range(64),
+    verbose :bool= True,
+    minibatch_size_features :int= 16,
+    minibatch_size_tokens :int= 8
+    def __post_init__(self):
+        if not os.path.exists(self.save_html_path):
+            os.makedirs(self.save_html_path)
+        self.to_json(self.save_html_path+"/config.json")
+    def to_dict(self) -> dict[str, Any]:
+
+        cfg_dict = {
+            **self.__dict__,
+        }
+        cfg_dict["features"]=list(cfg_dict["features"])
+        return cfg_dict
+
+    def to_json(self, path: str) -> None:
+        # if not os.path.exists(os.path.dirname(path)):
+        #     os.makedirs(os.path.dirname(path))
+        with open(path, "w") as f:
+            json.dump(self.to_dict(), f, indent=2)
+
+
 class vis:
-    def __init__(self, model_name,
-                 sae,
-                 sae_b,
-                 hook_point,
-                 save_html_path,
-                 save_json_path):
+    def __init__(self, cfg):
+        self.cfg=cfg
+        self.encoder, self.encoder_B = self.load_sae(cfg.sae, cfg.sae_b)
+        self.model = self.load_model(cfg.model_name)
 
-        self.encoder, self.encoder_B = self.load_sae(sae,sae_b)
-        self.model = self.load_model(model_name)
-
-        #.all_tokens = self.get_data(hook_point,save_html_path)
+        # .all_tokens = self.get_data(hook_point,save_html_path)
         self.all_tokens = self.get_data()
-        model_name_spilt=model_name.split("/")[-1].replace("-","_")
-        sae_split = sae.split("/")[-1]
-        sae_b_spilt = sae_b.split("/")[-1]
-        self.hook_point=hook_point
-        # self.save_html_path = f"{save_html_path}/{model_name_spilt}_a_{sae_split}_b_{sae_b_spilt}_{hook_point}.html"
-        # self.save_json_path = f"{save_json_path}/{model_name_spilt}_a_{sae_split}_b_{sae_b_spilt}_{hook_point}.json"
-        self.save_html_path = save_html_path
-        self.save_json_path = save_json_path
+        self.hook_point = cfg.hook_point
 
+        self.save_html_path = cfg.save_html_path
 
-    def load_sae(self,sae,sae_b):
-        encoder = SAE.load_from_pretrained(sae,device="cuda:0")
-        if sae_b=="":
+    def load_sae(self, sae, sae_b):
+        encoder = SAE.load_from_pretrained(sae, device="cuda:0")
+        if sae_b == "":
             encoder_B = None
         else:
-            encoder_B = SAE.load_from_pretrained(sae_b,device="cuda:0")
+            encoder_B = SAE.load_from_pretrained(sae_b, device="cuda:0")
 
         for k, v in encoder.named_parameters():
             print(f"{k}: {tuple(v.shape)}")
         return encoder, encoder_B
-
 
     def get_data(self):
         SEQ_LEN = 512
@@ -67,8 +90,8 @@ class vis:
         # Load in the data (it's a Dataset object)
         ## 在线读取的话，流式读取，streaming=True
         ## 本地路径读取的话，换为本地路径，可以把streaming=True删除掉。
-        #data = load_dataset("NeelNanda/c4-code-20k", split="train")
-        data = load_dataset("/root/data/sae/dataset/FinCorpus", split="train[:100]")
+        # data = load_dataset("NeelNanda/c4-code-20k", split="train")
+        data = load_dataset(self.cfg.dataset, split="train[:100]")
         # data = load_dataset("NeelNanda/c4-code-20k", split="train")
         print(type(data))
         # assert isinstance(data, Dataset)
@@ -83,8 +106,7 @@ class vis:
         print(all_tokens.shape)
         return all_tokens
 
-
-    def load_model(self,model_name):
+    def load_model(self, model_name):
         # model_name = model# 本地保存好模型后读取
         tokenizer = LlamaTokenizer.from_pretrained(model_name)
         hf_model = LlamaForCausalLM.from_pretrained(model_name, low_cpu_mem_usage=True)
@@ -101,16 +123,15 @@ class vis:
         print(model)
         return model
 
-
-    def make_html(self,hook_point,save_html_path,save_json_path):
+    def make_html(self, hook_point, save_html_path):
         # Specify the hook point you're using, and the features you're analyzing
         sae_vis_config = SaeVisConfig(
             # hook_point=utils.get_act_name("post", 0),
             hook_point=hook_point,
-            features=range(64),
-            verbose=True,
-            minibatch_size_features=16,
-            minibatch_size_tokens=8
+            features=self.cfg.features,
+            verbose=self.cfg.verbose,
+            minibatch_size_features=self.cfg.minibatch_size_features,
+            minibatch_size_tokens=self.cfg.minibatch_size_tokens
         )
         print("开始运行")
         # Gather the feature data
@@ -121,38 +142,52 @@ class vis:
             tokens=self.all_tokens[: 1024],  # type: ignore
             cfg=sae_vis_config,
         )
-        is_single=False
-        if is_single==False:
-            save_html_path=f"{save_html_path}/all.html"
+        ############prompt为中心的可视化#############
+        prompt = "可转换公司债券"
+        tokenized_prompt = self.model.tokenizer.tokenize(prompt)
+        print(tokenized_prompt)
+        # seq_pos=0
+        seq_pos = self.model.tokenizer.tokenize(prompt).index("转")
+        print(seq_pos)  # type: ignore
+        metric = 'act-quantiles'
+        save_feature_path = f"{save_html_path}/prompt.html"
+        sae_vis_data.save_prompt_centric_vis(
+            prompt=prompt,
+            filename=save_feature_path,
+            seq_pos=seq_pos,  # optional argument, to determine the default option when the page loads
+            metric=metric,  # optional argument, to determine the default option when the page loads
+        )
+        #############feature为中心的可视化###########
+        is_single = False
+        if is_single == False:
+            save_prompt_path = f"{save_html_path}/feature.html"
         # Save as HTML file & open in browser (or not, if in Colab)
-        sae_vis_data.save_feature_centric_vis(save_html_path, feature_idx=8,is_single=is_single)
-
+        sae_vis_data.save_feature_centric_vis(save_prompt_path, feature_idx=8, is_single=is_single)
 
         # sae_vis_data.save_json(save_json_path)
 
     def run(self):
-        self.make_html(self.hook_point,self.save_html_path,self.save_json_path)
-
-def main(args):
-    vis(
-        args.model_name,
-        args.sae,
-        args.sae_b,
-        args.hook_point,
-        args.save_html_path,
-        args.save_json_path,
-    ).run()
-
+        self.make_html(self.hook_point, self.save_html_path)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Configuration Parameters')
-    parser.add_argument('--model_name', default="/root/data/sae/LLMmodel/XuanYuan-6B-Chat", help="大模型的位置")
-    # parser.add_argument('--sae', default="/root/data/sae/sae_checkpoint/amw5q8up/final_768000", help="sae的checkpoint路径")
-    parser.add_argument('--sae', default="/root/data/sae/sae_checkpoint/pcc1n73m/final_3072000",help="sae的checkpoint路径")
-    # parser.add_argument('--sae_b', default="/root/data/sae/sae_checkpoint/2eizws4q/final_3072000",help="sae的checkpoint路径")
-    parser.add_argument('--sae_b',default="",help="sae的checkpoint路径")
-    parser.add_argument('--hook_point', default="blocks.0.hook_mlp_out", help="在MLP的哪一层")
-    parser.add_argument('--save_html_path', default="/root/data/sae/mxl_vis/XuanYuan_pcc1n73m")
-    parser.add_argument('--save_json_path', default="/root/data/sae/mxl_vis/XuanYuan_amw5q8up/config.json")
-    args = parser.parse_args()
-    main(args)
+    import sys
+
+    site_packages_path = "/root/data/miniconda3/miniconda3/envs/mxl_vis/lib/python3.10/site-packages"
+    # if site_packages_path not in sys.path:
+    sys.path.insert(0, site_packages_path)
+    sys.path.remove('/home/sae/.local/lib/python3.10/site-packages')
+    cfg = MyVisConfig(
+        model_name="/root/data/sae/LLMmodel/XuanYuan-6B-Chat",
+        dataset="/root/data/sae/dataset/FinCorpus3",
+        sae="/root/data/sae/sae_checkpoint/51tc1n66/final_3072000",
+        sae_b="",
+        hook_point="blocks.0.hook_mlp_out",
+        save_html_path="/root/data/sae/mxl_vis/XuanYuan_51tc1n66",
+        prompt="可转换公司债券",
+        features=range(64),
+        minibatch_size_features=16,
+        minibatch_size_tokens=8
+    )
+    vis(
+        cfg
+    ).run()

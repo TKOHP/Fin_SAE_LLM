@@ -307,8 +307,8 @@ class CacheActivationsRunner:
 
 
 if __name__ == '__main__':
-    batch_size = 4096
-    traning_step = 10_000
+    batch_size = 1024
+    traning_step = 3_000
     cfg = CacheActivationsRunnerConfig2(
         model_name="/root/data/sae/LLMmodel/XuanYuan-6B-Chat",
         model_class_name="LlamaForCausalLM",
@@ -316,15 +316,16 @@ if __name__ == '__main__':
         context_size=512,
         d_in=4096,
         training_tokens=batch_size*traning_step,
-        n_batches_in_buffer=32,  # 和训练的一样
-        store_batch_size_prompts=16,  # 和训练的一样
-        new_cached_activations_path="D:/project/LLM/myproject/activations/1",
+        n_batches_in_buffer=16,  # 和训练的一样
+        store_batch_size_prompts=8,  # 和训练的一样
+        new_cached_activations_path="/root/data/sae/dataset/fin_exam_unshuffle",
+        # new_cached_activations_path="/root/data/sae/dataset/fin_exam_shuffle1",
         device="cuda",
         n_devices=1,
         act_store_device="cpu",
         # ignore
         dataset_path="/root/data/sae/dataset/FinCorpus3",
-        # n_shuffles_final=10, #
+        n_shuffles_final=100, #
     )
     # cfg.to_json()
     a = CacheActivationsRunner(cfg)
