@@ -14,7 +14,7 @@ pip install circuitsvis
 # 计算显存占用，代码code/calculate_ram.py
 calculate()计算SAE显存占用
 shuffle_ram()计算shuffle的占用，为固定开销=19*buffer_size
-# 存储，代码code/make_dataset
+# 数据部分，代码code/data
 可以通过pycharm和虚拟环境里的sae_lens包同步来修改源码。
 需要多GPU，一个GPU不够加载。
 ## 虚拟环境配置
@@ -26,23 +26,22 @@ pip uninstall transformer_lens
 pip install git+https://github.com/TKOHP/TransformerLens.git 
 
 pip install circuitsvis
-## 使用
+## 数据生成使用，code/data/make_dataset
 直接编辑代码中的cfg，文件名自定义，起个好记的就行，会创建一个和文件名相同的json文件，保存在同一个父目录下。
 new_cached_activations_path路径不要以"/"结尾就行，因为要拼接.json。
-## code/make_dataset_old，之前旧的，使用命令行参数运行的代码，现在不适用
-### 默认参数
-#### 数据生成
-python make_dataset.py --batch_size 1024 --traning_step 3000 --context_size 512 --n_batches_in_buffer 64 --store_batch_size_prompts 16 --save_path "/root/data/sae/dataset" --n_devices 3 
-#### 数据只生成不shuffle：
-python make_dataset_plus_shuffle.py  --batch_size 1024 --traning_step 3000 --context_size 512 --n_batches_in_buffer 64 --store_batch_size_prompts 16 --save_path "/root/data/sae/dataset" --n_devices 3 --is_generate 0
-#### 数据只shuffle，不生成：
-python make_dataset_plus_shuffle.py  --batch_size 1024 --traning_step 3000 --context_size 512 --n_batches_in_buffer 64 --store_batch_size_prompts 16 --save_path "/root/data/sae/dataset" --n_devices 3 --is_shuffle 0
-#### 数据生成并shuffle（后两个参数默认即为1，1）：
-python make_dataset_plus_shuffle.py  --batch_size 1024 --traning_step 3000 --context_size 512 --n_batches_in_buffer 64 --store_batch_size_prompts 16 --save_path "/root/data/sae/dataset" --n_devices 3 --is_generate 1 --is_shuffle 1
-这是默认参数，不配置的话按默认参数走，其中save_path不用配置，按照默认的来就行。
-device看情况配置。
-### 更大的batch_size和训练step
-python make_dataset.py --batch_size 4096 --traning_step 30000 --context_size 512 --n_batches_in_buffer 64 --store_batch_size_prompts 16 --save_path "/root/data/sae/dataset" --n_devices 3
+
+## 数据shuffle1，code/data/shuffle_all
+所有buffer加载到内存，组成一个tensor后shuffle，再分开
+## 数据shuffle2，code/data/shuffleTwoPass
+pass1：
+* 创建n个空白目标buffer。
+* 对源shuffler的每一个源buffer进行以下处理：
+  * shuffle这个buffer
+  * 按顺序遍历n个空白目标buffer，将源buffer中的元素依次拼接上去。
+* 对目标buffer进行遍历，在每一个buffer内shuffle。
+
+pass2：每个buffer独立shuffle
+
 # 可视化HTML生成，code/vis_maker
 ## 虚拟环境配置
 在环境安装的基础上，安装包：
@@ -62,3 +61,6 @@ SAElens源码中的文件，稍微修改了加载模型部分，以适用金融L
 # 模型引导
 sae_lens
 pip install git+https://github.com/TKOHP/TransformerLens_steering.git
+# 模型测评
+后台运行测评程序
+nohup bash chatglm.sh > chatglm.log 2>&1 &

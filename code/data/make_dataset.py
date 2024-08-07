@@ -104,7 +104,7 @@ class ActivationsStore2(ActivationsStore):
             # pbar.update(1)
 
         new_buffer = new_buffer.reshape(-1, num_layers, d_in)
-        new_buffer = new_buffer[torch.randperm(new_buffer.shape[0])]
+        # new_buffer = new_buffer[torch.randperm(new_buffer.shape[0])]
 
         # every buffer should be normalized:
         if self.normalize_activations == "expected_average_only_in":
@@ -199,29 +199,6 @@ class CacheActivationsRunner:
         )
 
     @torch.no_grad()
-    def shuffle_activations(self):
-        new_cached_activations_path = self.cfg.new_cached_activations_path
-        assert new_cached_activations_path is not None
-        if not os.path.exists(new_cached_activations_path):
-            raise Exception(
-                f"Activations directory ({new_cached_activations_path}) is not exists. Please generate activations first."
-            )
-        elif len(os.listdir(new_cached_activations_path)) <= 1:
-            raise Exception(
-                f"Activations directory ({new_cached_activations_path}) is too short to shuffle. Please confirm it larger than 1."
-            )
-        # get activations
-        ##train..
-        n_buffers = len(os.listdir(new_cached_activations_path))
-
-        ##shuffle only
-        for _ in tqdm(range(self.cfg.n_shuffles_final), desc="Final shuffling"):
-            self.shuffle_activations_pairwise(
-                new_cached_activations_path,
-                buffer_idx_range=(0, n_buffers),
-            )
-
-    @torch.no_grad()
     def run(self):
         self.activations_store.track = False
         new_cached_activations_path = self.cfg.new_cached_activations_path
@@ -262,52 +239,9 @@ class CacheActivationsRunner:
                 )
                 break
 
-    @torch.no_grad()
-    def shuffle_activations_pairwise(
-            self, datapath: str, buffer_idx_range: Tuple[int, int]
-    ):
-        """
-        Shuffles two buffers on disk.
-        """
-        assert (
-                buffer_idx_range[0] < buffer_idx_range[1] - 1
-        ), "buffer_idx_range[0] must be smaller than buffer_idx_range[1] by at least 1"
-
-        buffer_idx1 = torch.randint(
-            buffer_idx_range[0], buffer_idx_range[1], (1,)
-        ).item()
-        buffer_idx2 = torch.randint(
-            buffer_idx_range[0], buffer_idx_range[1], (1,)
-        ).item()
-        while buffer_idx1 == buffer_idx2:  # Make sure they're not the same
-            buffer_idx2 = torch.randint(
-                buffer_idx_range[0], buffer_idx_range[1], (1,)
-            ).item()
-
-        buffer1 = self.activations_store.load_buffer(
-            f"{datapath}/{buffer_idx1}.{self.file_extension}"
-        )
-        buffer2 = self.activations_store.load_buffer(
-            f"{datapath}/{buffer_idx2}.{self.file_extension}"
-        )
-        joint_buffer = torch.cat([buffer1, buffer2])
-
-        # Shuffle them
-        joint_buffer = joint_buffer[torch.randperm(joint_buffer.shape[0])]
-        shuffled_buffer1 = joint_buffer[: buffer1.shape[0]]
-        shuffled_buffer2 = joint_buffer[buffer1.shape[0]:]
-
-        # Save them back
-        self.activations_store.save_buffer(
-            shuffled_buffer1, f"{datapath}/{buffer_idx1}.{self.file_extension}"
-        )
-        self.activations_store.save_buffer(
-            shuffled_buffer2, f"{datapath}/{buffer_idx2}.{self.file_extension}"
-        )
-
 
 if __name__ == '__main__':
-    batch_size = 1024
+    batch_size = 4096
     traning_step = 3_000
     cfg = CacheActivationsRunnerConfig2(
         model_name="/root/data/sae/LLMmodel/XuanYuan-6B-Chat",
@@ -316,8 +250,8 @@ if __name__ == '__main__':
         context_size=512,
         d_in=4096,
         training_tokens=batch_size*traning_step,
-        n_batches_in_buffer=16,  # 和训练的一样
-        store_batch_size_prompts=8,  # 和训练的一样
+        n_batches_in_buffer=32,  # 和训练的一样
+        store_batch_size_prompts=16,  # 和训练的一样
         new_cached_activations_path="/root/data/sae/dataset/fin_exam_unshuffle",
         # new_cached_activations_path="/root/data/sae/dataset/fin_exam_shuffle1",
         device="cuda",
@@ -331,5 +265,4 @@ if __name__ == '__main__':
     a = CacheActivationsRunner(cfg)
     ## 生成并保存数据
     a.run()
-    ## 进行shuffle
-    # a.shuffle_activations()
+
