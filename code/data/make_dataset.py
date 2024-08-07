@@ -259,7 +259,7 @@ if __name__ == '__main__':
         act_store_device="cpu",
         # ignore
         dataset_path="/root/data/sae/dataset/FinCorpus3",
-        n_shuffles_final=100, #
+
     )
     # cfg.to_json()
     a = CacheActivationsRunner(cfg)
