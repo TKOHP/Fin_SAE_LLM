@@ -21,24 +21,37 @@ def create_empty_safetensors_files(output_folder, num_files, tensor_shape):
 def append_to_safetensors_file(file_path, tensor_slice):
     with safe_open(file_path, framework='pt') as f:
         existing_tensor = f.get_tensor('activations')
-    new_tensor = torch.cat((existing_tensor, tensor_slice.unsqueeze(0)), dim=0)
+    new_tensor = torch.cat((existing_tensor, tensor_slice), dim=0)
     save_file({'activations': new_tensor}, file_path)
 
 
 def distribute_tensor_elements(input_files,output_folder):
     num_files = len(input_files)
     # 逐个文件处理
+
     for file_name in tqdm(input_files,desc="pass1"):
         file_path = os.path.join(input_folder, file_name)
         tensor = load_tensor(file_path)
         num_elements = tensor.shape[0]
-
+        # 查看每个tensor的大小
+        total_tensors = len(tensor)
+        tensors_per_file = total_tensors // num_files
+        remainder = total_tensors % num_files
         # 分配 tensor 元素到输出 tensor
         indices = torch.randperm(num_elements)  # 随机排列索引
-        for i, element in enumerate(tensor[indices]):
-            target_file_index = i % num_files
-            target_file_path = os.path.join(output_folder, f"{target_file_index}.safetensors")
-            append_to_safetensors_file(target_file_path, element)
+        tensor=tensor[indices]
+        current_start_index = 0
+        for j in range(num_files):
+            current_end_index = current_start_index + tensors_per_file + (1 if j < remainder else 0)
+            current_tensors = tensor[current_start_index:current_end_index]
+            current_start_index = current_end_index
+            target_file_path = os.path.join(output_folder, f"{j}.safetensors")
+            print(current_tensors.shape)
+            append_to_safetensors_file(target_file_path, current_tensors)
+        # for i, element in enumerate(tensor[indices]):
+        #     target_file_index = i % num_files
+        #     target_file_path = os.path.join(output_folder, f"{target_file_index}.safetensors")
+        #     append_to_safetensors_file(target_file_path, element)
 def final_shuffle(output_folder):
     output_files = [file_name for file_name in os.listdir(output_folder) if file_name.endswith('.safetensors')]
     # num_files = len(output_files)
