@@ -533,15 +533,15 @@ if __name__ == "__main__":
         num_eval_batches=10,
         eval_batch_size_prompts=8,
         datasets=["/root/data/sae/dataset/FinCorpus3", "/root/data/sae/dataset/FinCorpus2"],
-        ctx_lens=[64, 128, 256, 512],
+        ctx_lens=[64, 128, 256, 512],# 上下文长度
         save_path="/root/data/sae/evals/unshuffle_shuffle/",
         # Reconstruction metrics
-        compute_kl=True,
-        compute_ce_loss=True,
-        compute_l2_norms=True,
+        compute_kl=True, # kl散度
+        compute_ce_loss=True,# 交叉熵损失
+        compute_l2_norms=True,# l2正则
         # Sparsity and variance metrics
-        compute_sparsity_metrics=True,
-        compute_variance_metrics=True,
+        compute_sparsity_metrics=True,# 特征稀疏度指标
+        compute_variance_metrics=True,# 解释方差
     )
 
     eval_results = multiple_evals(

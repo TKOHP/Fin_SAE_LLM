@@ -1,5 +1,12 @@
 def calculate(M, N, B, F):
-
+    """
+    计算SAE模型的占用
+    :param M: 神经元数量
+    :param N: 特征数量
+    :param B: batch_size
+    :param F: 精度
+    :return:
+    """
     all = M * B * F + M * N * F * 2 + M * B * F + N * B * F + M * F + N * F
     all = all / (1024 ** 3)
     print("一共{all}GB".format(all=all))
@@ -7,6 +14,16 @@ def calculate(M, N, B, F):
 
 
 def shuffle_ram(context_size, n_batches_in_buffer, d_in, store_batch_size_prompts, num_layer,F):
+    """
+    计算数据的占用，此为SAElens源码中局部/在线
+    :param context_size: 上下文大小
+    :param n_batches_in_buffer: buffer中的batch数量
+    :param d_in: 数据
+    :param store_batch_size_prompts:
+    :param num_layer:
+    :param F:
+    :return:
+    """
     half_buffer_size = n_batches_in_buffer // 2
 
     total_size = store_batch_size_prompts * half_buffer_size
