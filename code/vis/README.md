@@ -9,3 +9,6 @@ pip install git+https://github.com/TKOHP/sae_vis.git
 pip install git+https://github.com/TKOHP/TransformerLens_sae_vis.git 这个包其实是对TransformerLens的多GPU进行了一个指定，并对齐了一些变量
 note:transformers版本为4.38.1.
 
+# vis_maker
+## 以特征为中心
+包括生成全部特征，生成单个特征的（将is_single设为True）

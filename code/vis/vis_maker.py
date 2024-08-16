@@ -248,8 +248,8 @@ if __name__ == '__main__':
         hook_point="blocks.0.hook_mlp_out",
         #hook_point="blocks.0.hook_resid_post",
         save_html_path="/root/data/sae/zyao/XuanYuan_uu7cllm1",
-        prompt="信用卡",
-        fs_prompt="信用卡",
+        prompt="信用卡", # 以prompt为中心的可视化的prompt
+        fs_prompt="信用卡",# 用于特征筛选的prompt
         minibatch_size_features=16,
         minibatch_size_tokens=8
     )
