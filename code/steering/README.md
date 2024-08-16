@@ -1,3 +1,6 @@
+# 环境
+sae_lens
+pip install git+https://github.com/TKOHP/TransformerLens_steering.git 修改一些tensor所在显卡，针对steering使用时候，一些变量在不同的GPU
 # steering_model.py
 引导的代码
 ## 正向引导
