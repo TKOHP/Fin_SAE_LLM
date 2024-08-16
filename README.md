@@ -23,3 +23,5 @@ https://github.com/TKOHP/SAELens.git
 https://github.com/TKOHP/sae_vis
 ## Transformer_lens
 https://github.com/TKOHP/TransformerLens.git
+## 自动解释性评分
+https://github.com/Zhang-Jiaxuan/sparse_coding2.git
