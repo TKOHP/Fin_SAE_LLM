@@ -20,8 +20,8 @@ def shuffle_ram(context_size, n_batches_in_buffer, d_in, store_batch_size_prompt
     :param n_batches_in_buffer: buffer中的batch数量
     :param d_in: 数据
     :param store_batch_size_prompts:
-    :param num_layer:
-    :param F:
+    :param num_layer:几个层，目前1个
+    :param F:精度
     :return:
     """
     half_buffer_size = n_batches_in_buffer // 2
