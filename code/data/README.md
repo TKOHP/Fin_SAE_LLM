@@ -13,4 +13,5 @@ pass1：
 * 对目标buffer进行遍历，在每一个buffer内shuffle。
 
 pass2：每个buffer独立shuffle
-
+# view_data
+简单查看语料库数据
